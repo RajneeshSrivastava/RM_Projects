@@ -38,8 +38,8 @@ GSE158924	MS	arm -skin
 GSE147944	MS	Biopsy -skin
 
 ```
-KS.dir = "/path/"                                             
-KS_data <- Load10X_Spatial(data.dir = paste0(KS.dir, NS9),
+RS.dir = "/path/"                                             
+RS_data <- Load10X_Spatial(data.dir = paste0(RS.dir,
 						filename = "filtered_feature_bc_matrix.h5", 
 						assay = "Spatial", 
 						slice = NS9, 
