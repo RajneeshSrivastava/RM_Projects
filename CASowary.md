@@ -32,7 +32,7 @@ b. **CASowary_Predict** - which takes the aforementioned fasta file, the TopHat 
 
 https://indiana-my.sharepoint.com/:f:/g/personal/amkrug_iu_edu/Et5C7ArR7SNElsF8Tlz45UwBtpcvpVSKAesOmyipOl8pQg?e=c6EAhy
 
-## Repository? (not clear, when or what to download from repository, it should be described in this page. Also, if these are static files, i suggest please try to make them available as github file or user's local directory to avoid any third party permission issue for IU.
+## Repository? (not clear, when or what to download from repository, it should be described in this page. Also, if these are static files, i suggest please try to make them available as github file or user's local or working directory to avoid any third party permission issue for IU.
 
 
 **CASowary_Preprocess** can be run using the following command. 
@@ -44,11 +44,12 @@ python CASowary_Preprocess.py Gene.csv -o Input_Guides.fasta
 
 The resulting Input_Guides.fasta from **CASowary_Preprocess** script, needs to be run through the TopHat aligner with the following parameters:
 
-read-mismatches 3, read-edit-dist 3 (see example below). The reference transcriptiome file is also stored at the same link with the Gene_Information.txt file.
+read-mismatches 3, read-edit-dist 3 (see example below).
 
 ```
 tophat --read-mismatches 3 --read-edit-dist 3 -o Gene_Guides ./BT_hg38_transcriptome_0221/BT_hg38_transcriptome_0221 Input_Guides.fasta
 ```
+**Note:** The reference transcriptiome file should be stored at the same working directory or link with the Gene_Information.txt file.
 
 The results of the TopHat alignment (.bam) files, can be converted into bed file using bedtools 'bamtobed' command (see example below).
 ```
@@ -60,7 +61,7 @@ The resulting bed file should also be sorted using the bedtools 'sort' command (
 bedtools sort -i Target_Hits.bed > Target_Hits.sorted.bed
 ```
 
-b. Finally, **CASowary_Predict** script can be run using the following command. 
+Finally, **CASowary_Predict** script can be run using the following command. 
 ```
 python CASowary_Predict.py Input_Guides.fasta -h Target_Hits.sorted.bed -p Hek293_Occupancy_Profile.xls -o Predictions.txt
 ```
