@@ -1,5 +1,5 @@
-## Project: Fetal skin fibroblast
-#### Running title: " Comparative transcriptomics profile of FS HGG and MS"
+## Project: Comparative transcriptomics profile of FS HGG and MS
+#### Running title: "Single cell RNA study identifies an analogous genetic profile of fetal skin and gingiva fibroblast involved in tissue regeneration"
 #### Author: "Rajneesh Srivastava"
 #### Date: "23/01/2022"
 
@@ -39,7 +39,124 @@ GSE158924	MS	arm -skin
 GSE147944	MS	Biopsy -skin
 ```
 #### Data upload
+
+#Fetal_Skin
 ```
+FET.dir = "C:/Users/rsrivast/Desktop/scRNA/Fetal_GSE156972/"
+
+samples <- read.table("C:/Users/rsrivast/Desktop/scRNA/Fetal_GSE156972/LibraryID.txt", stringsAsFactors=F, sep="\t",header=T)
+
+FET_data <- Read10X_h5(file="C:/Users/rsrivast/Desktop/scRNA/Fetal_GSE156972/GSE156972_raw_gene_bc_matrices_h5.h5")
+
+cells <- new("seurat", raw.data = FET_data)
+cellcodes <- as.data.frame(cells@raw.data@Dimnames[[2]])
+colnames(cellcodes) <- "barcodes"
+rownames(cellcodes) <- cellcodes$barcodes
+cellcodes$libcodes <- as.factor(gsub(pattern=".+-", replacement="", cellcodes$barcodes))
+cellcodes$samples <- as.vector(samples$library_id[cellcodes$libcodes])
+sampleidentity <- cellcodes["samples"]
+
+GSE156972 <- CreateSeuratObject(FET_data,
+									meta.data=sampleidentity,
+                                    min.cells=3,
+                                    min.features = 200,
+                                    project = "GSE156972")
+
+```
+#Gingiva
+
+```
+HGG.dir = "C:/Users/rsrivast/Desktop/scRNA/GSE164241_HGG/healthy/"
+
+GSE164241.list=list("GSM5005048","GSM5005049","GSM5005050","GSM5005051","GSM5005052","GSM5005053","GSM5005054","GSM5005055","GSM5005056","GSM5005057","GSM5177039","GSM5177040","GSM5177041")
+
+
+for (file in GSE164241.list){
+               OC_data <- Read10X(data.dir =    
+                                    paste0(OC.dir, file))
+               
+               OC_obj <- CreateSeuratObject(counts = 
+                                    OC_data,
+                                    min.cells=3,
+                                    min.features = 200,
+                                    project = file)
+               assign(file, OC_obj)
+                            }
+```
+# Mature Skin 1 - GSE158924
+
+```
+MS1.dir = "C:/Users/rsrivast/Desktop/scRNA/HC_GSE158924/"
+
+GSE158924.list=list("GSM4815804","GSM4815805")
+
+for (file in GSE158924.list){
+               MS1_data <- read.table(file = 
+                                    paste0(MS1.dir, file,".txt.gz"))
+               
+               MS1_obj <- CreateSeuratObject(counts = 
+                                    MS1_data,
+                                    min.cells=3,
+                                    min.features = 200,
+                                    project = file)
+               assign(file, MS1_obj)
+                            }
+```
+# Mature Skin 2 - GSE153760
+
+```
+MS2.dir = "C:/Users/rsrivast/Desktop/scRNA/HC_GSE153760/"
+
+GSE153760.list=list("GSM4653868","GSM4653869")
+
+for (file in GSE153760.list){
+               MS2_data <- Read10X(data.dir =    
+                                    paste0(MS2.dir, file))
+               
+               MS2_obj <- CreateSeuratObject(counts = 
+                                    MS2_data,
+                                    min.cells=3,
+                                    min.features = 200,
+                                    project = file)
+               assign(file, MS2_obj)
+                            }
+```
+##### Mature Skin - GSE147944]
+```
+MS3.dir = "C:/Users/rsrivast/Desktop/scRNA/MS_GSE147944/"
+
+GSE147944.list=list("GSM4450726","GSM4450727","GSM4450728","GSM4450729")
+
+for (file in GSE147944.list){
+               MS3_data <- read.csv(file = 
+                                    paste0(MS3.dir, file,"_raw.csv.gz"), header = TRUE, row.names = 1)
+               
+               MS3_obj <- CreateSeuratObject(counts = 
+                                    MS3_data,
+                                    min.cells=3,
+                                    min.features = 200,
+                                    project = file)
+               assign(file, MS3_obj)
+                            }
+```
+##### Mature Skin 4 - In-house]
+```
+MS4.dir = "C:/Users/rsrivast/Desktop/scRNA/MS_Sen-Lab-data/dataset/"
+
+Sen.list=list("SCNS1","SCNS2","SCNS8","SCNS9","SCNS10")
+
+for (file in Sen.list){
+               MS4_data <- Read10X(data.dir =  
+                                    paste0(MS4.dir, file))
+               
+               MS4_obj <- CreateSeuratObject(counts = 
+                                    MS4_data,
+                                    min.cells=3,
+                                    min.features = 200,
+                                    project = file)
+               assign(file, MS4_obj)
+                            }
+
 RS.dir = "/path/"                                             
 RS_data <- Load10X_Spatial(data.dir = paste0(RS.dir,
 						filename = "filtered_feature_bc_matrix.h5", 
