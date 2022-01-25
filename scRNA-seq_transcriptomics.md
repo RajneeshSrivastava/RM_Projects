@@ -29,14 +29,16 @@ options(future.globals.maxSize = 15000 * 1024^2)
 
 ### 4. Upload Data
 Data were downloaded from Gene Expression Omnibus (GEO) repository with following GSE IDs
-GSE-ID	Groups	Human Tissue
+```
+GSE-ID		Groups	Human Tissue
 GSE156972	FS	Fetal Skin
 GSE164241	HGG	Gingiva
 GSE153760	MS	Biopsy -skin
 In-house	MS	NA
 GSE158924	MS	arm -skin
 GSE147944	MS	Biopsy -skin
-
+```
+#### Data upload
 ```
 RS.dir = "/path/"                                             
 RS_data <- Load10X_Spatial(data.dir = paste0(RS.dir,
