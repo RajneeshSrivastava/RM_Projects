@@ -176,13 +176,11 @@ for (i in 1:length(sample.list)) {
                             subset = nFeature_RNA > 200 & 
                             nFeature_RNA < 5000 & percent.mt < 15 & 
                             nCount_RNA < 25000 & nCount_RNA > 2000)
-                                }
-```
+#                                }
 ### 6. Data transformation and scaling using 'SCT' module in Seurat
-```
 #SCT transformation
 
-for (i in 1:length(sample.list)) {
+#for (i in 1:length(sample.list)) {
      sample.list[[i]] <- SCTransform(sample.list[[i]],
                                     vars.to.regress = "percent.mt", 
                                     return.only.var.genes = FALSE,
@@ -202,20 +200,64 @@ VlnPlot(NS9,
 #Attempt 2 (refer to May18.rmd)
 # select features that are repeatedly variable across datasets for integration run PCA on each
 # dataset using these features
-sample.features <- SelectIntegrationFeatures(object.list = sample.list, nfeatures = 3000)
+
+# Data integration
+
+sample.features <- SelectIntegrationFeatures(object.list = sample.list,    
+                   nfeatures = 3000)
+
 sample.list <- lapply(X = sample.list, FUN = function(x) {
-                                x <- RunPCA(x, features = sample.features)
+                   x <- RunPCA(x, features = sample.features)
                                                          } )
-sample.list <- PrepSCTIntegration(object.list = sample.list, anchor.features = sample.features, verbose = FALSE)
-sample.anchors <- FindIntegrationAnchors(object.list = sample.list, normalization.method = "SCT", anchor.features = sample.features, reference = c(1, 2), reduction = "rpca", verbose = TRUE)
-#reference = c(1, 2) additional option
-sample.integrated <- IntegrateData(anchorset = sample.anchors, normalization.method = "SCT", verbose = TRUE)
+
+sample.list <- PrepSCTIntegration(object.list = sample.list, 
+                   anchor.features = sample.features,
+                   verbose = FALSE)
+                   
+sample.anchors <- FindIntegrationAnchors(object.list = sample.list, 
+                   normalization.method = "SCT", 
+                   anchor.features = sample.features, 
+                   reference = c(1, 2), 
+                   reduction = "rpca", 
+                   verbose = TRUE)
+
+sample.integrated <- IntegrateData(anchorset = sample.anchors, 
+                   normalization.method = "SCT",
+                   verbose = TRUE)
+
+# CLUSTERING ANALYSIS - RUN PCA
+sample.integrated <- RunPCA(object = sample.integrated, verbose = FALSE) 
+
+#test the %variance of principle components (ranked)
+ElbowPlot(sample.integrated, ndims = 50)
+ElbowPlot(sample.integrated, ndims = 20) #after manual judgement
+
+## Explore the top PCs
+DimHeatmap(sample.integrated, dims = 1, cells = 500, balanced=TRUE) #1st PC
+DimHeatmap(sample.integrated, dims = 2, cells = 500, balanced=TRUE) #2nd PC
+
+#RUN tSNE/UMAP
+sample.integrated = RunUMAP(sample.integrated, dims = 1:30)
+#sample.integrated = RunTSNE(sample.integrated, dims = 1:30)
+
+## FIND CLUSTERS WITH DEFINED RESOLUTION
+sample.integrated <- FindNeighbors(sample.integrated) # dim=1:10
+sample25 <- FindClusters(sample.integrated, resolution = 0.25)
+#sample50 <- FindClusters(sample.integrated, resolution = 0.50)
+
+## FIND AVERAGE EXPRESSION OF INTEGRATED OBJECT [sample25]
+AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
+head (AvgExpS25$integrated)
+head (AvgExpS25$RNA)
+head(AvgExpS25$SCT)
 
 ### 8. Save RDS file
 ```
-setwd ("/path/")
-saveRDS (NS9, file = "NS9.rds")
-NS9=readRDS(file="./path/NS9.rds")
+#setwd ("/path/")
+#write.table(AvgExpS25$SCT,"AvgExpS25_SCT.txt)
+#saveRDS (sample.integrated, file = "sample.integrated.rds")
+#saveRDS (sample25, file = "FS_HGG_MS_25.rds")
+
 ```
 ### 9. Spatial transcriptomic profile of signature genes for Kera1 and Kera 2 clusters.
 ```
