@@ -237,11 +237,12 @@ sample25 <- FindClusters(sample.integrated, resolution = 0.25)
 #sample50 <- FindClusters(sample.integrated, resolution = 0.50)
 ```
 ### 11. Find average expression of integrated and clustered object [sample25]
+```
 AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
-head (AvgExpS25$integrated)
-head (AvgExpS25$RNA)
-head(AvgExpS25$SCT)
-
+#head (AvgExpS25$integrated)
+#head (AvgExpS25$RNA)
+#head(AvgExpS25$SCT)
+```
 ### 12. Save RDS file
 ```
 #setwd ("/path/")
