@@ -251,7 +251,7 @@ AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 #saveRDS (sample25, file = "FS_HGG_MS_25.rds")
 
 ```
-### 13. Transcriptomic profile of FS, HGG, MS groups and respective signature genes for identified clusters.
+### 13. Transcriptomic profile of FS, HGG, MS groups and respective signature genes for cell clusters.
 ###### DOT PLOT for Markers
 ```
 DefaultAssay(sample25)="SCT"
@@ -266,7 +266,9 @@ top10genes=unique(top10$gene)
 DotPlot(FB_MYE_re25, features = top10genes) + 
     theme(axis.text.x=element_text(size=7.5, angle=45, hjust=1)) + 
     theme(axis.text.y=element_text(size=7.5, face="italic"))
-
+```
+###### Signature genes for cell clusters
+```
 FigS1=c("COL1A1","SELE","IL7R","KRT1","ACTA2","LYZ","KRT14","KRT6A","IGFBP3","TYRP1","TFF3","IGHG1","CTSG")
 FeaturePlot(sample25,features=FigS1,reduction="tsne",cols=c("grey","red","black"))
 
