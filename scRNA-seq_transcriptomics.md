@@ -535,8 +535,8 @@ DotPlot(MY_5_re50, features = top10genes) +
     theme(axis.text.x=element_text(size=7.5, angle=45, hjust=1)) + 
     theme(axis.text.y=element_text(size=7.5, face="italic"))
 ```
-##### Pseudotime Analysis
-###### Create monocle object from seurat object
+### Pseudotime Analysis
+##### Create monocle object from seurat object
 ```
 #setwd("C:/Users/rsrivast/Desktop/scRNA/scRNA-Fetal-vs-Adult/Results_July/Saved_RDS_final/")
 #sample25 <-readRDS(file = "FS_HGG_MS_25.rds")
