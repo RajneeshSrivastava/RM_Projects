@@ -34,9 +34,9 @@ GSE-ID		Groups	Human Tissue
 GSE156972	FS	Fetal Skin
 GSE164241	HGG	Gingiva
 GSE153760	MS	Biopsy -skin
-In-house	MS	NA
 GSE158924	MS	arm -skin
 GSE147944	MS	Biopsy -skin
+In-house	MS	Biopsy -skin
 ```
 #### Fetal_Skin
 ```
@@ -252,7 +252,7 @@ AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 
 ```
 ### 13. Transcriptomic profile of FS, HGG, MS groups and respective signature genes for cell clusters.
-###### DOT PLOT for Markers
+###### DOT Plot for Markers
 ```
 DefaultAssay(sample25)="SCT"
 DimPlot(sample25,reduction = "tsne")
@@ -473,23 +473,21 @@ netVisual_aggregate(HGG_cell_chat, signaling = "ANNEXIN",layout="circle")
 #SUBSET ANALYSIS
 Idents(sample25)="seurat_clusters"
 FB_MYE=subset(sample25,subset=seurat_clusters=="0"|seurat_clusters=="5")
-#saveRDS(FB_MYE,file="FB_MYE_25.rds")
-```{r}
-####FB_MYE_re25=readRDS(file="FB_MYE_re25.rds")
-
+```
+###### cell type specific DEGs - Venn diagram 
+####### (Figure 4)
+```
 g31=c("ASPN","ATP5G1","CCL2","CLEC11A","COL1A1","COL1A2","COL3A1","COL5A1","COL5A2","FAM195B","IGF2","LAPTM4A","LHFP","LOXL2","LUM","MDK","NGFRAP1","NREP","OSTC","PHLDA1","POSTN","PTK7","PTRF","SEPP1","SEPW1","SERPINE2","SNAI2","SPARC","TMED2","VIMP","WBP5")
 g35=c("AC090498.1","ALDOA","ATP5A1","ATP5B","ATP5C1","ATP5D","ATP5E","ATP5F1","ATP5G2","ATP5G3","ATP5H","ATP5I","ATP5J","ATP5J2","ATP5L","ATP5O","ATPIF1","C11orf31","C14orf166","C14orf2","C19orf43","C19orf60","C7orf73","GNB2L1","GPX1","LINC00493","MYEOV2","RPL13A","RPS17","SELK","SEP15","SHFM1","TCEB1","TCEB2","USMG5")
 g25=c("BRK1","CD69","CORO1A","COX7A2","CTD-3252C9.4","CXCR4","FAM26F","FYB","GLTSCR2","PFN1","POMP","RPL21","RPL27A","RPL31","RPL36A","RPL7","RPS19","S100A8","S100A9","SEC61G","SELT","SERF2","SLC16A3","TMSB4X","UQCR11")
 
-VlnPlot(FB_MYE_25,features=g25,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
-VlnPlot(FB_MYE_25,features=g31,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
-VlnPlot(FB_MYE_25,features=g35,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
+VlnPlot(FB_MYE,features=g25,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
+VlnPlot(FB_MYE,features=g31,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
+VlnPlot(FB_MYE,features=g35,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
 ```
-#FB_MYE
-FB_MYE_re=readRDS(file="C:/Users/rsrivast/Desktop/scRNA/scRNA-Fetal-vs-Adult/Results_June/FB_MYE_Cluster_0_5/FB_MYE_re_original.rds")
-FB_MYE_re25 <- FindClusters(FB_MYE_re, resolution = 0.25)
-
-#tweak-in
+##### FB_MYE clusters
+###### tweak-in for assigning the celltype
+```
 meta=read.table("metadata.txt",sep="\t", header=T)
 
 GSM=FB_MYE@meta.data
@@ -504,26 +502,28 @@ for(i in 1:nrow(GSM)){
              }
 
 FB_MYE@meta.data=GSM
-
-#DefaultAssay(FB_MYE)="SCT"
-
-#ReCluster ANALYSIS
-
+```
+###### ReCluster ANALYSIS
+```
+#FB_MYE=readRDS(file="FB_MYE.rds")
 DefaultAssay(FB_MYE)="integrated"
 FB_MYE_re <- RunPCA(object = FB_MYE, verbose = FALSE)
-#ElbowPlot(MY_5_re, ndims = 50)
-FB_MYE_re <- FindNeighbors(FB_MYE_re) # dim=1:10
+#ElbowPlot(FB_MYE_re, ndims = 50)
 FB_MYE_re = RunUMAP(FB_MYE_re, dims = 1:30)
 FB_MYE_re = RunTSNE(FB_MYE_re, dims = 1:30)
+FB_MYE_re <- FindNeighbors(FB_MYE_re) # dim=1:10
 FB_MYE_re25 <- FindClusters(FB_MYE_re, resolution = 0.25)
 #saveRDS(FB_MYE_re25,file="FB_MYE_re25.rds")
-```{r}
-#####FB_MYE_re25=readRDS(file="FB_MYE_25.rds")
+```
+###### Visualization of fibroblast and myeloid cell sub clusters 
+```
+#FB_MYE_re25=readRDS(file="FB_MYE_re25.rds")
 DefaultAssay(FB_MYE_re25)="SCT"
 DimPlot(FB_MYE_re25,reduction = "tsne")
 DimPlot(FB_MYE_re25,split.by = "Type",reduction = "tsne")
-
-#Get top 10 Markers
+```
+###### Get top 10 Markers
+```
 DefaultAssay(FB_MYE_re25)="SCT"
 FB_MYE_re25_markers=FindAllMarkers(FB_MYE_re25,only.pos = T,logfc.threshold = 0.3, min.pct = 0.10)
 #write.table(FB_MYE_re25_markers,"All_marker_FB_MYE_re25.txt") # Explore the table
