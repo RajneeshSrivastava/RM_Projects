@@ -465,18 +465,26 @@ for (i in 1:length(object.list)) {
 netVisual_aggregate(FS_cell_chat, signaling = "ANNEXIN",layout="circle")
 netVisual_aggregate(HGG_cell_chat, signaling = "ANNEXIN",layout="circle")
 ```
-### CELL TYPE SPECIFIC DIFFERENTIAL EXPRESSION ANALYSIS
+### Cell type specific Differential Expression Analysis
+##### Isolate Fb and Myeloid cell clusters
 ```
-#SUBSET ANALYSIS #DIFF ANALYSIS
-#Isolate Fb and Myeloid cell clusters
-
-#SUBSET ANALYSIS
 Idents(sample25)="seurat_clusters"
+FB=subset(sample25,subset=seurat_clusters=="0")
+MYE=subset(sample25,subset=seurat_clusters=="5")
+```
+###### Cell type specific Differential Expression Analysis
+```
+Idents(FB)="Type"
+DefaultAssay(FB)="SCT"
+FB_FSvsMS <- FindMarkers(FB, ident.1 = "FS", ident.2 = "MS",logfc.threshold = 0.6, min.pct=0.30)
+Idents(MYE)="Type"
+DefaultAssay(MYE)="SCT"
+MYE_FSvsMS <- FindMarkers(MYE, ident.1 = "FS", ident.2 = "MS",logfc.threshold = 0.6, min.pct=0.30)
+```
+###### Intersection of DEGs across cell types (refer to Fig. 4)
+```
 FB_MYE=subset(sample25,subset=seurat_clusters=="0"|seurat_clusters=="5")
-```
-###### cell type specific DEGs - Venn diagram 
-####### (Figure 4)
-```
+
 g31=c("ASPN","ATP5G1","CCL2","CLEC11A","COL1A1","COL1A2","COL3A1","COL5A1","COL5A2","FAM195B","IGF2","LAPTM4A","LHFP","LOXL2","LUM","MDK","NGFRAP1","NREP","OSTC","PHLDA1","POSTN","PTK7","PTRF","SEPP1","SEPW1","SERPINE2","SNAI2","SPARC","TMED2","VIMP","WBP5")
 g35=c("AC090498.1","ALDOA","ATP5A1","ATP5B","ATP5C1","ATP5D","ATP5E","ATP5F1","ATP5G2","ATP5G3","ATP5H","ATP5I","ATP5J","ATP5J2","ATP5L","ATP5O","ATPIF1","C11orf31","C14orf166","C14orf2","C19orf43","C19orf60","C7orf73","GNB2L1","GPX1","LINC00493","MYEOV2","RPL13A","RPS17","SELK","SEP15","SHFM1","TCEB1","TCEB2","USMG5")
 g25=c("BRK1","CD69","CORO1A","COX7A2","CTD-3252C9.4","CXCR4","FAM26F","FYB","GLTSCR2","PFN1","POMP","RPL21","RPL27A","RPL31","RPL36A","RPL7","RPS19","S100A8","S100A9","SEC61G","SELT","SERF2","SLC16A3","TMSB4X","UQCR11")
