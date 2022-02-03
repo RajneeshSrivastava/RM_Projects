@@ -3,17 +3,17 @@
 #### Author: "Rajneesh Srivastava"
 #### Date: "23/01/2022"
 
-### 1. Setup the directory for data analysis in R (version 4.0.4)
+### Setup the directory for data analysis in R (version 4.0.4)
 ```setwd ("/path/public_dataset/Result/")```
 
-### 2. Software installation
+### Software installation
 ```
 install.packages("Seurat")   # version 4.0.2
 install.packages("hdf5r")
 install.packages("ggplot2")  # version 3.3.4
 install.packages("future")
 ```
-### 3. Load libraries in R
+### Load libraries in R
 ```
 library(Seurat)
 library(dplyr)
@@ -27,7 +27,7 @@ plan("multiprocess", workers = 4)
 options(future.globals.maxSize = 15000 * 1024^2)
 ```
 
-### 4. Upload Data
+### Creating seurat objects
 Data were downloaded from Gene Expression Omnibus (GEO) repository with following GSE IDs
 ```
 GSE-ID		Groups	Human Tissue
@@ -153,7 +153,7 @@ for (file in Sen.list){
                             }
 
 ```
-### 5. Compute the mitochondrial content and filter with additional cutoffs
+### Compute the mitochondrial content and filter with additional cutoffs
 ```
 sample.list=list(GSE156972,GSM5005048,GSM5005049,GSM5005050,GSM5005051,GSM5005052,GSM5005053,GSM5005054,GSM5005055,GSM5005056,GSM5005057,GSM5177039,GSM5177040,GSM5177041,GSM4815804,GSM4815805,GSM4653868,GSM4653869,GSM4450726,GSM4450727,GSM4450728,GSM4450729,SCNS1,SCNS2,SCNS8,SCNS9,SCNS10)
 
@@ -166,7 +166,7 @@ for (i in 1:length(sample.list)) {
                             nCount_RNA < 25000 & nCount_RNA > 2000)
                                 }
 ```
-### 6. Data transformation and scaling using 'SCT' module in Seurat
+### Data transformation and scaling using 'SCT' module in Seurat
 
 #### SCT transformation
 ```
@@ -177,7 +177,7 @@ for (i in 1:length(sample.list)) {
                                     verbose = FALSE)
                                  }
 ```
-### 7. Check if the sample meets the analysis criteria (Please see methods)
+### Check if the sample meets the analysis criteria (Please see methods)
 ```
 VlnPlot(sample.list[[1]],                #all files can be checked from 1-29 or can be looped
 	features = c("nCount_Spatial",
@@ -186,7 +186,7 @@ VlnPlot(sample.list[[1]],                #all files can be checked from 1-29 or 
 			 ncol = 3, 
 			 pt.size=0)
 ```
-### 8. Data integration
+### Data integration
 ```
 sample.features <- SelectIntegrationFeatures(object.list = sample.list,    
                    nfeatures = 3000)
@@ -210,7 +210,7 @@ sample.integrated <- IntegrateData(anchorset = sample.anchors,
                    normalization.method = "SCT",
                    verbose = TRUE)
 ```
-### 9. Clustering analysis
+### Clustering analysis
 
 ```
 sample.integrated <- RunPCA(object = sample.integrated, verbose = FALSE) 
@@ -230,20 +230,20 @@ DimHeatmap(sample.integrated, dims = 2, cells = 500, balanced=TRUE) #2nd PC
 sample.integrated = RunUMAP(sample.integrated, dims = 1:30) # optional
 sample.integrated = RunTSNE(sample.integrated, dims = 1:30)
 ```
-### 10. Find cluster with defined resolution
+### Find cluster with defined resolution
 ```
 sample.integrated <- FindNeighbors(sample.integrated) # dim=1:10
 sample25 <- FindClusters(sample.integrated, resolution = 0.25)
 #sample50 <- FindClusters(sample.integrated, resolution = 0.50)
 ```
-### 11. Find average expression of integrated and clustered object [sample25]
+### Find average expression of integrated and clustered object [sample25]
 ```
 AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 #head (AvgExpS25$integrated)
 #head (AvgExpS25$RNA)
 #head(AvgExpS25$SCT)
 ```
-### 12. Save RDS file
+### Save RDS files
 ```
 #setwd ("/path/")
 #write.table(AvgExpS25$SCT,"AvgExpS25_SCT.txt)
@@ -251,7 +251,7 @@ AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 #saveRDS (sample25, file = "FS_HGG_MS_25.rds")
 
 ```
-### 13. Transcriptomic profile of FS, HGG, MS groups and respective signature genes for cell clusters.
+### Transcriptomic profile of FS, HGG, MS groups and respective signature genes for cell clusters.
 ###### DOT Plot for Markers
 ```
 DefaultAssay(sample25)="SCT"
@@ -278,27 +278,29 @@ FeaturePlot(sample25, reduction="tsne", features=fb, cols=c("grey","red","black"
 mye=c("LYZ","CXCL8","HLA-DQB1","IL1B")
 FeaturePlot(sample25, reduction="tsne", features=mye, cols=c("grey","red","black"))
 ```
-## Cell-Chat-Analysis
+
+# Cell-Chat-Analysis
+### Load libraries
 ```
 library(CellChat)
 library(patchwork)
 options(stringsAsFactors = FALSE)
 future::plan("multiprocess", workers = 4)
 ```
-###### INPUT Seurat object
+### INPUT Seurat object
 ```
 Idents(sample25)="Type"
 FS_s25=subset(sample25,subset=Type=="FS")
 HGG_s25=subset(sample25,subset=Type=="HGG")
 MS_s25=subset(sample25,subset=Type=="MS")
 ```
-###### Create CellChat objects
+### Create CellChat objects
 ```
 FS_cell_chat=createCellChat(object=FS_s25,meta=FS_s25@meta.data,group.by="seurat_clusters")
 HGG_cell_chat=createCellChat(object=HGG_s25,meta=HGG_s25@meta.data,group.by="seurat_clusters")
 MS_cell_chat=createCellChat(object=MS_s25,meta=MS_s25@meta.data,group.by="seurat_clusters")
 ```
-###### Assign Idents
+#### Assign Idents
 ```
 FS_cell_chat <-setIdent(FS_cell_chat, ident.use="seurat_clusters")
 HGG_cell_chat <-setIdent(HGG_cell_chat, ident.use="seurat_clusters")
@@ -306,7 +308,7 @@ MS_cell_chat <-setIdent(MS_cell_chat, ident.use="seurat_clusters")
 #levels(FS_cell_chat@idents)
 #FS_groupSize<-as.numeric(table(FS_cell_chat@idents)) #number of cells in each grp
 ```
-###### Database usage
+#### Database usage
 ```
 CellChatDB<- CellChatDB.human
 #showDatabaseCategory(CellChatDB)
@@ -315,13 +317,13 @@ FS_cell_chat@DB <-CellChatDB.use
 HGG_cell_chat@DB <-CellChatDB.use
 MS_cell_chat@DB <-CellChatDB.use
 ```
-###### Subset the dataset for enhanced performance
+#### Subset the dataset for enhanced performance
 ```
 FS_cell_chat <-subsetData(FS_cell_chat)
 HGG_cell_chat <-subsetData(HGG_cell_chat)
 MS_cell_chat <-subsetData(MS_cell_chat)
 ```
-##### Individual Analysis
+### Individual Analysis
 ```
 FS_cell_chat <- identifyOverExpressedGenes(FS_cell_chat)
 FS_cell_chat <- identifyOverExpressedInteractions(FS_cell_chat)
@@ -358,14 +360,14 @@ HGG_cell_chat=readRDS(file = "HGG_cell_chat.rds")
 MS_cell_chat=readRDS(file = "MS_cell_chat.rds")
 merged_cellchat=readRDS(file = "Merged_cell_chat.rds")
 ```
-##### Comparison of cell chat objects
-###### S2A
+### Comparison of cell chat objects
+###### Fig. S2A
 ```
 g1=compareInteractions(merged_cellchat, show.legend = F, group = c(1,2,3))
 g2=compareInteractions(merged_cellchat, show.legend = F, group = c(1,2,3), measure = "weight")
 g1+g2
 ```
-###### S2B
+###### Fig. S2B
 ```
 object.list=c(FS_cell_chat,HGG_cell_chat,MS_cell_chat)
 weight.max <- getMaxWeight(object.list, attribute = c("idents","count"))
@@ -374,7 +376,7 @@ for (i in 1:length(object.list)) {
   netVisual_circle(object.list[[i]]@net$count, weight.scale = T, label.edge= F, edge.weight.max = weight.max[2], edge.width.max = 12, title.name = paste0("Number of interactions - ", names(object.list)[[i]]))
 }
 ```
-###### S2C
+###### Fig. S2C
 ```
 object.list=c(FS_cell_chat,MS_cell_chat)
 group.cellType <- c(rep("0", 4), rep("5", 4))
@@ -390,7 +392,7 @@ object.list <- lapply(object.list, function(x) {mergeInteractions(x, group.cellT
 cellchat <- mergeCellChat(object.list, add.names = names(object.list))
 netVisual_diffInteraction(cellchat, weight.scale = T, measure = "count.merged", label.edge = T)
 ```
-##### S2D - Information_flow
+##### Fig. S2D - Information_flow
 ```
 if1=rankNet(merged_cellchat, comparison=c(1,3),stacked = T, do.stat = TRUE)
 if2=rankNet(merged_cellchat, comparison=c(1,3),stacked = T, do.stat = TRUE)
@@ -398,8 +400,8 @@ if3=rankNet(merged_cellchat, comparison=c(1,2,3),stacked = T, do.stat = TRUE)
 #if1+if2
 if3
 ```
-##### Compare_interactions
-###### heatmap
+### Compare_interactions
+##### heatmap
 ```
 netVisual_heatmap(merged_cellchat,comparison=c(1,3))
 netVisual_heatmap(merged_cellchat,comparison=c(2,3))
@@ -411,7 +413,7 @@ netVisual_heatmap(merged_cellchat,comparison=c(2,3),measure = "weight")
 netVisual_diffInteraction(merged_cellchat, weight.scale = T,comparison = c(1,3))
 netVisual_diffInteraction(merged_cellchat, weight.scale = T,comparison = c(2,3))
 ```
-###### S2E-F
+###### Fig. S2E-F
 ```
 library(ComplexHeatmap)
 object.list=c(FS_cell_chat,HGG_cell_chat,MS_cell_chat)
@@ -423,7 +425,7 @@ ht2 = netAnalysis_signalingRole_heatmap(object.list[[i+1]], pattern = "outgoing"
 ht3 = netAnalysis_signalingRole_heatmap(object.list[[i+2]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i+2], width = 5, height = 16)
 draw(ht1 + ht2 + ht3, ht_gap = unit(0.5, "cm"))
 ```
-###### SX
+###### Fig. SX
 ```
 FSMS.chat.list=c(FS_cell_chat,MS_cell_chat)
 chat.names=list("FS","MS")
@@ -439,7 +441,7 @@ HGGvsMSchat <- mergeCellChat(HGGMS.chat.list, add.names = names(chat2.names))
 netVisual_diffInteraction(HGGvsMSchat, weight.scale = T)
 netVisual_diffInteraction(HGGvsMSchat, weight.scale = T, measure = "weight")
 ```
-##### Cluster specific analysis
+##### Cluster specific visualization
 ```
 mat <- FS_cell_chat@net$weight
 par(mfrow = c(3,4), xpd=TRUE)
@@ -449,7 +451,7 @@ for (i in 1:nrow(mat)) {
   netVisual_circle(mat2, vertex.weight = groupSize, weight.scale = T, edge.weight.max = max(mat), title.name = rownames(mat)[i])
 }
 ```
-##### Pathway specific analysis
+##### Pathway specific visualization
 ```
 pathways.show <- c("ANNEXIN") 
 weight.max <- getMaxWeight(merged_cellchat, slot.name = c("netP"), attribute = pathways.show) # control the edge weights across different datasets
@@ -465,15 +467,14 @@ for (i in 1:length(object.list)) {
 netVisual_aggregate(FS_cell_chat, signaling = "ANNEXIN",layout="circle")
 netVisual_aggregate(HGG_cell_chat, signaling = "ANNEXIN",layout="circle")
 ```
-## Cell type specific Differential Expression Analysis
-##### Isolate Fb and Myeloid cell clusters
+
+# Cell type specific Differential Expression Analysis
+### Isolate Fb and Myeloid cell clusters
 ```
 Idents(sample25)="seurat_clusters"
 FB=subset(sample25,subset=seurat_clusters=="0")
 MYE=subset(sample25,subset=seurat_clusters=="5")
-```
-###### Cell type specific Differential Expression Analysis
-```
+
 Idents(FB)="Type"
 DefaultAssay(FB)="SCT"
 FB_FSvsMS <- FindMarkers(FB, ident.1 = "FS", ident.2 = "MS",logfc.threshold = 0.6, min.pct=0.30)
@@ -481,7 +482,7 @@ Idents(MYE)="Type"
 DefaultAssay(MYE)="SCT"
 MYE_FSvsMS <- FindMarkers(MYE, ident.1 = "FS", ident.2 = "MS",logfc.threshold = 0.6, min.pct=0.30)
 ```
-###### Intersection of DEGs across cell types (refer to Fig. 4)
+### Intersection of DEGs across cell types (refer to Fig. 4)
 ```
 FB_MYE=subset(sample25,subset=seurat_clusters=="0"|seurat_clusters=="5")
 
@@ -493,8 +494,8 @@ VlnPlot(FB_MYE,features=g25,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00
 VlnPlot(FB_MYE,features=g31,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
 VlnPlot(FB_MYE,features=g35,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
 ```
-##### FB_MYE clusters
-###### tweak-in for assigning the celltype
+### FB_MYE clusters
+##### tweak-in for assigning the celltype
 ```
 meta=read.table("metadata.txt",sep="\t", header=T)
 
@@ -511,7 +512,7 @@ for(i in 1:nrow(GSM)){
 
 FB_MYE@meta.data=GSM
 ```
-#### ReCluster ANALYSIS
+### ReCluster Analysis
 ```
 #FB_MYE=readRDS(file="FB_MYE.rds")
 DefaultAssay(FB_MYE)="integrated"
@@ -523,14 +524,14 @@ FB_MYE_re <- FindNeighbors(FB_MYE_re) # dim=1:10
 FB_MYE_re25 <- FindClusters(FB_MYE_re, resolution = 0.25)
 #saveRDS(FB_MYE_re25,file="FB_MYE_re25.rds")
 ```
-###### Visualization of fibroblast and myeloid cell sub clusters 
+#### Visualization of fibroblast and myeloid cell sub clusters 
 ```
 #FB_MYE_re25=readRDS(file="FB_MYE_re25.rds")
 DefaultAssay(FB_MYE_re25)="SCT"
 DimPlot(FB_MYE_re25,reduction = "tsne")
 DimPlot(FB_MYE_re25,split.by = "Type",reduction = "tsne")
 ```
-###### Get top 10 Markers
+#### Get top 10 Markers
 ```
 DefaultAssay(FB_MYE_re25)="SCT"
 FB_MYE_re25_markers=FindAllMarkers(FB_MYE_re25,only.pos = T,logfc.threshold = 0.3, min.pct = 0.10)
@@ -543,8 +544,8 @@ DotPlot(MY_5_re50, features = top10genes) +
     theme(axis.text.x=element_text(size=7.5, angle=45, hjust=1)) + 
     theme(axis.text.y=element_text(size=7.5, face="italic"))
 ```
-### Pseudotime Analysis
 
+# Pseudotime Analysis
 ##### Load libraries in R
 ```
 library(Seurat)
@@ -559,14 +560,14 @@ plan("multiprocess", workers = 4)
 options(future.globals.maxSize = 15000 * 1024^2)
 future::plan("multiprocess", workers = 4)
 ```
-##### Open seurat object as a variable as monocle_object
+### Open seurat object as a variable as monocle_object
 ```
 #setwd("/path/pseudotime-analysis/")
 FB_MYE_re25=readRDS(file="/path/FB_MYE_re25.rds")
 DefaultAssay(FB_MYE_re25)="SCT"
 monocle_pre_object = FB_MYE_re25
 ```
-##### Restore gene expression data and metadata
+### Restore gene expression data and metadata
 ```
 data <- monocle_pre_object@assays$SCT@data
 cell_metadata <- new('AnnotatedDataFrame', monocle_pre_object@meta.data)
@@ -576,21 +577,21 @@ gene_metadata <- new('AnnotatedDataFrame', data = fData)
 gene_metadata <- as(gene_metadata, "data.frame")
 cell_metadata <- as(cell_metadata, "data.frame")
 ```
-##### Construct monocle object
+### Construct monocle object
 ```
 cds <- new_cell_data_set(data,
                          cell_metadata = cell_metadata,
                          gene_metadata = gene_metadata
 			 )
 ```
-##### PCA preprocessing
+### PCA preprocessing
 ```
 #cds <- preprocess_cds(cds, num_dim = 50)#=100
 cds30 <- preprocess_cds(cds, num_dim = 30)
 #saveRDS(cds,file="cds_FB_MYE_25.rds")
 plot_pc_variance_explained(cds10)
 ```
-##### Grid plot for a range of distances
+### Grid plot for a range of distances
 ```
 #distances = c(0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1)
 distances = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
@@ -605,7 +606,7 @@ for(i in distances){
         1200);print(plot_cells(color_cells_by = "celltype",temp));dev.off()
 		   }
 ```
-###### _examine the plots by narrowing down the distance_
+##### _examine the plots by narrowing down the distance_
 ```
 distances=c(0.5,0.7,1.0)
 for(i in distances){
@@ -618,28 +619,28 @@ for(i in distances){
         1200);print(plot_cells(color_cells_by = "celltype",graph_label_size=0.5,temp));dev.off()
 		   }
 ```
-##### Re-examine the graph(s) and continue with one distance. In our case, we worked with distance at 0.7
+#### Re-examine the graph(s) and continue with one distance. In our case, we worked with distance at 0.7
 ```
 cds0.7 <- reduce_dimension(cds30, umap.min_dist = 0.7)%>%cluster_cells%>%learn_graph
 #saveRDS(cds0.7,file="cds0.7dim30_FB_MYE_25.rds")
 #cds0.7 = cluster_cells(cds0.7)
 #cds0.7 = learn_graph(cds0.7)
 ```
-##### order cells and select a branch point to visalize the pseudotime scale
+### order cells and select a branch point to visalize the pseudotime scale
 ```
 cds0.7 = order_cells(cds0.7)
 plot_cells(cds0.7, color_cells_by = "Type",graph_label_size=0.5)
 plot_cells(cds0.7, color_cells_by = "celltype",graph_label_size=0.5)
 plot_cells(cds0.7, color_cells_by = "pseudotime",graph_label_size=0.5)
 ```
-##### Plot genes (to check the status of identified signaling molecules from Fig. 3) along the pseudotime
+### Plot genes (to check the status of identified signaling molecules from Fig. 3) along the pseudotime
 ```
 geneset=c("ANXA1","FPR1")
 plot_cells(cds0.7, genes=geneset, label_cell_groups = F,label_groups_by_cluster = F,labels_per_group = F,label_branch_points = F,label_roots = F,label_leaves = F)
 #+facet_wrap(~celltype, nrow = 5) ##In case we go with one gene at a time
 ```
-#### Regression analysis
-##### select a subset cells from the marked branch points for regression analysis. 
+### Regression analysis
+#### select a subset cells from the marked branch points for regression analysis. 
 ##### _Here we subset the cells along two marked branch point locations at FS-HGG, and MS branches, based on FPR1 expression in pseudotime space_
 ```
 cds_subsetRt <- choose_cells(cds0.7)
@@ -665,13 +666,13 @@ x=My_time_terms %>%select(gene_short_name,num_cells_expressed,status,term,estima
 # cds_subsetLt=readRDS(file="cds0.7_subset_Lt2_dim30_FB_MYE_25.rds")
 # cds_subsetRt=readRDS(file="cds0.7_subset_Rt_dim30_FB_MYE_25.rds")
 ```
-##### Visualize the chosen cells as per cell type or groups 
+### Visualize the chosen cells as per cell type or groups 
 ```
 plot_genes_violin(cds_subgenes, group_cells_by="Type", ncol=2) +
       theme(axis.text.x=element_text(angle=45, hjust=1)) +
       facet_wrap(~celltype, nrow = 5)
 ```
-##### Expression of pseudotime associated significant genes along the cell types identified in chosen (subset) pseudotime 
+### Expression of pseudotime associated significant genes along the cell types identified in chosen (subset) pseudotime 
 ```
 g40=c("AC090498.1","ALDOA","ASPN","ATP5E","ATP5G2","ATP5I","ATP5L","ATP5O","ATPIF1","CCL2","CLEC11A","COL1A1","COL1A2","COL3A1","COL5A1","COL5A2","GNB2L1","GPX1","IGF2","LHFP","LOXL2","LUM","MDK","NGFRAP1","NREP","POSTN","PTK7","PTRF","RPL13A","RPS17","SELK","SEPP1","SEPW1","SERPINE2","SNAI2","SPARC","TCEB1","TCEB2","USMG5","WBP5")
 
@@ -686,4 +687,4 @@ plot_genes_in_pseudotime(cds_subgenes,
                          min_expr=0.05,ncol = 4)
 ```
 
-## Thank you
+# Thank you
