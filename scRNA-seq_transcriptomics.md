@@ -544,13 +544,8 @@ DotPlot(MY_5_re50, features = top10genes) +
     theme(axis.text.y=element_text(size=7.5, face="italic"))
 ```
 ### Pseudotime Analysis
-##### Create monocle object from seurat object
-```
-#setwd("/path/pseudotime-analysis/")
-#sample25 <-readRDS(file = "FS_HGG_MS_25.rds")
-#FB_MYE_re25=readRDS(file="FB_MYE_re25.rds")
-```
-### Load libraries in R
+
+##### Load libraries in R
 ```
 library(Seurat)
 library(SeuratWrappers)
@@ -564,99 +559,118 @@ plan("multiprocess", workers = 4)
 options(future.globals.maxSize = 15000 * 1024^2)
 future::plan("multiprocess", workers = 4)
 ```
-####### Store your seurat object into a variable called monocle_object
+###### Open seurat object as a variable as monocle_object
 ```
+#setwd("/path/pseudotime-analysis/")
+FB_MYE_re25=readRDS(file="/path/FB_MYE_re25.rds")
 DefaultAssay(FB_MYE_re25)="SCT"
 monocle_pre_object = FB_MYE_re25
 ```
-####### Store gene expression data and metadata
+###### Restore gene expression data and metadata
 data <- monocle_pre_object@assays$SCT@data
 cell_metadata <- new('AnnotatedDataFrame', monocle_pre_object@meta.data)
+
 fData <- data.frame(gene_short_name = row.names(data), row.names = row.names(data))
 gene_metadata <- new('AnnotatedDataFrame', data = fData)
-
 gene_metadata <- as(gene_metadata, "data.frame")
 cell_metadata <- as(cell_metadata, "data.frame")
 
-#Construct monocle object
+###### Construct monocle object
 cds <- new_cell_data_set(data,
                          cell_metadata = cell_metadata,
                          gene_metadata = gene_metadata
-)
+			 )
 
-#PCA preprocessing
+###### PCA preprocessing
+```
 #cds <- preprocess_cds(cds, num_dim = 50)#=100
 cds30 <- preprocess_cds(cds, num_dim = 30)
 #saveRDS(cds,file="cds_FB_MYE_25.rds")
 plot_pc_variance_explained(cds10)
-
-#Grid plot a range of distances
+```
+####### Grid plot for a range of distances
+```
 #distances = c(0.05,0.1,0.15,0.2,0.25,0.3,0.35,0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75,0.8,0.85,0.9,0.95,1)
 distances = c(0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)
 
-for(i in distances)
-{
+for(i in distances){
   temp = reduce_dimension(cds30, umap.min_dist = i)
-    jpeg(paste0(i,"_tissue.jpg"), res=300,width = 1600,height =   
+    jpeg(paste0(i,"-tissue.jpg"), res=300,width = 1600,height =   
          1200);print(plot_cells(color_cells_by = "Type",temp));dev.off()
-    jpeg(paste0(i,"_clusters.jpg"), res=300,width = 1600,height =   
+    jpeg(paste0(i,"-clusters.jpg"), res=300,width = 1600,height =   
         1200);print(plot_cells(color_cells_by = "seurat_clusters",temp));dev.off()
-    jpeg(paste0(i,"_celltype.jpg"), res=300,width = 1600,height = 
+    jpeg(paste0(i,"-celltype.jpg"), res=300,width = 1600,height = 
         1200);print(plot_cells(color_cells_by = "celltype",temp));dev.off()
-}
-
-distances=c(0.1,0.2)
-for(i in distances)
-{
+		   }
+```
+###### _examine the plots by narrowing down the distance_
+```
+distances=c(0.5,0.7,1.0)
+for(i in distances){
   temp <- reduce_dimension(cds30, umap.min_dist = i)%>%cluster_cells%>%learn_graph
-    jpeg(paste0(i,"_tissue.jpg"), res=300,width = 1600,height =   
+    jpeg(paste0(i,"-tissue.jpg"), res=300,width = 1600,height =   
          1200);print(plot_cells(color_cells_by = "Type",graph_label_size=0.5,temp));dev.off()
-    #jpeg(paste0(i,"_clusters.jpg"), res=300,width = 1600,height =   
+    #jpeg(paste0(i,"-clusters.jpg"), res=300,width = 1600,height =   
     #    1200);print(plot_cells(color_cells_by = #"seurat_clusters",graph_label_size=0.5,temp));dev.off()
-    jpeg(paste0(i,"_celltype.jpg"), res=300,width = 1600,height = 
+    jpeg(paste0(i,"-celltype.jpg"), res=300,width = 1600,height = 
         1200);print(plot_cells(color_cells_by = "celltype",graph_label_size=0.5,temp));dev.off()
-}
-
-## Examine the graph and continue with one distance. Example.distance at 0.5
+		   }
+```
+###### Re-examine the graph(s) and continue with one distance. In our case, we worked with distance at 0.7
+```
 cds0.7 <- reduce_dimension(cds30, umap.min_dist = 0.7)%>%cluster_cells%>%learn_graph
 #saveRDS(cds0.7,file="cds0.7dim30_FB_MYE_25.rds")
-
-cds0.7 = cluster_cells(cds0.5)
-cds0.7 = learn_graph(cds0.5)
+#cds0.7 = cluster_cells(cds0.7)
+#cds0.7 = learn_graph(cds0.7)
+```
+###### order cells and select a branch point to visalize the pseudotime scale
+```
 cds0.7 = order_cells(cds0.7)
-
-```{r}
-#####cds0.7=readRDS(file="cds0.7dim30_FB_MYE_25.rds")
 plot_cells(cds0.7, color_cells_by = "Type",graph_label_size=0.5)
 plot_cells(cds0.7, color_cells_by = "celltype",graph_label_size=0.5)
 plot_cells(cds0.7, color_cells_by = "pseudotime",graph_label_size=0.5)
-
-#Plot genes
-gene=c("ANXA1","FPR1")
-plot_cells(cds0.7, genes=gene, label_cell_groups = F,label_groups_by_cluster = F,labels_per_group = F,label_branch_points = F,label_roots = F,label_leaves = F)
+```
+###### Plot genes (to check the status of identified signaling molecules from Fig. 3) along the pseudotime
+```
+geneset=c("ANXA1","FPR1")
+plot_cells(cds0.7, genes=geneset, label_cell_groups = F,label_groups_by_cluster = F,labels_per_group = F,label_branch_points = F,label_roots = F,label_leaves = F)
 #+facet_wrap(~celltype, nrow = 5) ##In case we go with one gene at a time
 ```
-#REGRESSION ANALYSIS
-#cds_subsetRt <- choose_cells(cds0.7)
+##### REGRESSION ANALYSIS
+###### select a subset cells from the marked branch points for regression analysis. 
+###### _Here we subset the cells along two marked branch point locations at FS-HGG, and MS branches, based on FPR1 expression in pseudotime space_
+```
+cds_subsetRt <- choose_cells(cds0.7)
+gene_fits <- fit_models(cds_subsetRt, model_formula_str = "~pseudotime",cores=4)
+fit_coefs <- coefficient_table(gene_fits)
+#write.table(fit_coefs,"fits_coefsRt.txt",sep="\t",header=T)
+My_time_terms <- fit_coefs %>% filter(term == "pseudotime")
+x=My_time_terms %>%select(gene_short_name,num_cells_expressed,status,term,estimate,p_value,q_value)
+#write.table(x,"pseudoreg_0.7_Rt.txt")
+#rm(cds_subset,gene_fits,fit_coefs,My_time_terms,x)
+
 cds_subsetLt <- choose_cells(cds0.7)
 gene_fits <- fit_models(cds_subsetLt, model_formula_str = "~pseudotime",cores=4)
 fit_coefs <- coefficient_table(gene_fits)
-#write.table(fit_coefs,"fits_coefs.txt",sep="\t",header=T)
+#write.table(fit_coefs,"fits_coefsLt.txt",sep="\t",header=T)
 My_time_terms <- fit_coefs %>% filter(term == "pseudotime")
 x=My_time_terms %>%select(gene_short_name,num_cells_expressed,status,term,estimate,p_value,q_value)
 #write.table(x,"pseudoreg_0.7_Lt.txt")
 #rm(cds_subset,gene_fits,fit_coefs,My_time_terms,x)
 
-saveRDS(cds_subsetLt,file="")
-saveRDS(cds_subsetRt,file="")
+# saveRDS(cds_subsetLt,file="nameLt.rds")
+# saveRDS(cds_subsetRt,file="nameRt.rds")
+# cds_subsetLt=readRDS(file="cds0.7_subset_Lt2_dim30_FB_MYE_25.rds")
+# cds_subsetRt=readRDS(file="cds0.7_subset_Rt_dim30_FB_MYE_25.rds")
+```
+###### Visualize the chosen cells as per cell type or groups 
+```
 plot_genes_violin(cds_subgenes, group_cells_by="Type", ncol=2) +
       theme(axis.text.x=element_text(angle=45, hjust=1)) +
       facet_wrap(~celltype, nrow = 5)
-```{r}
-####cds_subsetLt=readRDS(file="cds0.7_subset_Lt2_dim30_FB_MYE_25.rds")
-####cds_subsetRt=readRDS(file="cds0.7_subset_Rt_dim30_FB_MYE_25.rds")
-
-#SUBSETTING
+```
+##### Expression of pseudotime associated significant genes along the cell types identified in chosen (subset) pseudotime 
+```
 g40=c("AC090498.1","ALDOA","ASPN","ATP5E","ATP5G2","ATP5I","ATP5L","ATP5O","ATPIF1","CCL2","CLEC11A","COL1A1","COL1A2","COL3A1","COL5A1","COL5A2","GNB2L1","GPX1","IGF2","LHFP","LOXL2","LUM","MDK","NGFRAP1","NREP","POSTN","PTK7","PTRF","RPL13A","RPS17","SELK","SEPP1","SEPW1","SERPINE2","SNAI2","SPARC","TCEB1","TCEB2","USMG5","WBP5")
 
 cds_subgenes <- cds_subsetLt[rowData(cds_subsetLt)$gene_short_name %in% g40,]
