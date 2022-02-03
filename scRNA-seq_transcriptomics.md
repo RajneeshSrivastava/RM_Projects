@@ -278,7 +278,7 @@ FeaturePlot(sample25, reduction="tsne", features=fb, cols=c("grey","red","black"
 mye=c("LYZ","CXCL8","HLA-DQB1","IL1B")
 FeaturePlot(sample25, reduction="tsne", features=mye, cols=c("grey","red","black"))
 ```
-### 14. Cell-Chat-Analysis
+## Cell-Chat-Analysis
 ```
 library(CellChat)
 library(patchwork)
@@ -465,7 +465,7 @@ for (i in 1:length(object.list)) {
 netVisual_aggregate(FS_cell_chat, signaling = "ANNEXIN",layout="circle")
 netVisual_aggregate(HGG_cell_chat, signaling = "ANNEXIN",layout="circle")
 ```
-### Cell type specific Differential Expression Analysis
+## Cell type specific Differential Expression Analysis
 ##### Isolate Fb and Myeloid cell clusters
 ```
 Idents(sample25)="seurat_clusters"
@@ -511,7 +511,7 @@ for(i in 1:nrow(GSM)){
 
 FB_MYE@meta.data=GSM
 ```
-###### ReCluster ANALYSIS
+#### ReCluster ANALYSIS
 ```
 #FB_MYE=readRDS(file="FB_MYE.rds")
 DefaultAssay(FB_MYE)="integrated"
