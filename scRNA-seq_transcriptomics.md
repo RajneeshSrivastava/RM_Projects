@@ -674,7 +674,10 @@ plot_genes_violin(cds_subgenes, group_cells_by="Type", ncol=2) +
 ```
 ### Expression of pseudotime associated significant genes along the cell types identified in chosen (subset) pseudotime 
 ```
-g40=c("AC090498.1","ALDOA","ASPN","ATP5E","ATP5G2","ATP5I","ATP5L","ATP5O","ATPIF1","CCL2","CLEC11A","COL1A1","COL1A2","COL3A1","COL5A1","COL5A2","GNB2L1","GPX1","IGF2","LHFP","LOXL2","LUM","MDK","NGFRAP1","NREP","POSTN","PTK7","PTRF","RPL13A","RPS17","SELK","SEPP1","SEPW1","SERPINE2","SNAI2","SPARC","TCEB1","TCEB2","USMG5","WBP5")
+g40=c("AC090498.1","ALDOA","ASPN","ATP5E","ATP5G2","ATP5I","ATP5L","ATP5O","ATPIF1","CCL2",
+	"CLEC11A","COL1A1","COL1A2","COL3A1","COL5A1","COL5A2","GNB2L1","GPX1","IGF2","LHFP",
+	"LOXL2","LUM","MDK","NGFRAP1","NREP","POSTN","PTK7","PTRF","RPL13A","RPS17","SELK",
+	"SEPP1","SEPW1","SERPINE2","SNAI2","SPARC","TCEB1","TCEB2","USMG5","WBP5")
 
 cds_subgenes <- cds_subsetLt[rowData(cds_subsetLt)$gene_short_name %in% g40,]
 plot_genes_in_pseudotime(cds_subgenes,
