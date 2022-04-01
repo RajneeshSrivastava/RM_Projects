@@ -253,7 +253,35 @@ AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 ```
 ### Transcriptomic profile of FS, HGG, MS groups and respective signature genes for cell clusters.
 ###### DOT Plot for Markers
+
+###### Assign the tissue type per sample
 ```
+#tweak-in-code
+meta=read.table("metadata.txt",sep="\t", header=T)
+head(meta)
+  library_id Code
+1	GSE156972	FS
+2       GSM5005048	HGG
+3       GSM5005049	HGG
+4       GSM5005050	HGG
+5       GSM5005051	HGG
+6       GSM5005052	HGG
+
+GSM=sample.integrated@meta.data
+GSM$group=1
+head(GSM)
+
+for(i in 1:nrow(GSM)){
+  for (j in 1:nrow(meta)){
+   if (GSM[i,1] == meta[j,1])
+        { GSM[i,7] = meta[j,2] }
+                 }
+             }
+
+sample.integrated@meta.data=GSM
+
+sample25$Type <- factor(sample25$Type, levels = c("FS", "HGG", "MS"))
+
 DefaultAssay(sample25)="SCT"
 DimPlot(sample25,reduction = "tsne")
 DimPlot(sample25,reduction = "tsne", split.by="Type")
