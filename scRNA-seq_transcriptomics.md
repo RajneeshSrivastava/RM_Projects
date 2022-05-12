@@ -30,13 +30,15 @@ options(future.globals.maxSize = 15000 * 1024^2)
 ### Creating seurat objects
 Data were downloaded from Gene Expression Omnibus (GEO) repository with following GSE IDs
 ```
-GSE-ID		Groups	Human Tissue
-GSE156972	FS	Fetal Skin
-GSE164241	HGG	Gingiva
-GSE153760	MS	Biopsy -skin
-GSE158924	MS	arm -skin
-GSE147944	MS	Biopsy -skin
-In-house	MS	Biopsy -skin
+GSE-ID	        Code
+GSE156972	FS
+GSE164241	HGG
+GSE153760	MS
+GSE176415	MS
+GSE158924	MS
+GSE147944	MS
+GSE182208	MS
+
 ```
 #### Fetal_Skin
 ```
@@ -46,6 +48,7 @@ samples <- read.table("/path/public_dataset/Fetal_GSE156972/LibraryID.txt", stri
 
 FET_data <- Read10X_h5(file="/path/public_dataset/Fetal_GSE156972/GSE156972_raw_gene_bc_matrices_h5.h5")
 
+# data pre-processing
 cells <- new("seurat", raw.data = FET_data)
 cellcodes <- as.data.frame(cells@raw.data@Dimnames[[2]])
 colnames(cellcodes) <- "barcodes"
@@ -69,15 +72,15 @@ GSE164241.list=list("GSM5005048","GSM5005049","GSM5005050","GSM5005051","GSM5005
 
 
 for (file in GSE164241.list){
-               OC_data <- Read10X(data.dir =    
-                                    paste0(OC.dir, file))
+               HGG_data <- Read10X(data.dir =    
+                                    paste0(HGG.dir, file))
                
-               OC_obj <- CreateSeuratObject(counts = 
-                                    OC_data,
+               HGG_obj <- CreateSeuratObject(counts = 
+                                    HGG_data,
                                     min.cells=3,
                                     min.features = 200,
                                     project = file)
-               assign(file, OC_obj)
+               assign(file, HGG_obj)
                             }
 ```
 #### Mature Skin 1 - GSE158924
@@ -218,7 +221,7 @@ sample.integrated <- RunPCA(object = sample.integrated, verbose = FALSE)
 ###### Test the %variance of principle components (ranked)
 ```
 ElbowPlot(sample.integrated, ndims = 50)
-ElbowPlot(sample.integrated, ndims = 20) #after manual judgement
+ElbowPlot(sample.integrated, ndims = 30) #after manual judgement
 ```
 ###### Explore the top PCs
 ```
@@ -246,7 +249,7 @@ AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 ### Save RDS files
 ```
 #setwd ("/path/")
-#write.table(AvgExpS25$SCT,"AvgExpS25_SCT.txt)
+write.table(AvgExpS25$SCT,"AvgExpS25_SCT.txt)
 #saveRDS (sample.integrated, file = "sample.integrated.rds")
 #saveRDS (sample25, file = "FS_HGG_MS_25.rds")
 
@@ -259,7 +262,7 @@ AvgExpS25 = AverageExpression(sample25, return.seurat = FALSE, verbose = TRUE)
 #tweak-in-code
 meta=read.table("metadata.txt",sep="\t", header=T)
 head(meta)
-  library_id Code
+        library_id      Code
 1	GSE156972	FS
 2       GSM5005048	HGG
 3       GSM5005049	HGG
@@ -395,7 +398,7 @@ g1=compareInteractions(merged_cellchat, show.legend = F, group = c(1,2,3))
 g2=compareInteractions(merged_cellchat, show.legend = F, group = c(1,2,3), measure = "weight")
 g1+g2
 ```
-###### Fig. S2B
+###### (non-published material)
 ```
 object.list=c(FS_cell_chat,HGG_cell_chat,MS_cell_chat)
 weight.max <- getMaxWeight(object.list, attribute = c("idents","count"))
@@ -404,7 +407,40 @@ for (i in 1:length(object.list)) {
   netVisual_circle(object.list[[i]]@net$count, weight.scale = T, label.edge= F, edge.weight.max = weight.max[2], edge.width.max = 12, title.name = paste0("Number of interactions - ", names(object.list)[[i]]))
 }
 ```
+##### Fig. 3A, S2B - Information_flow
+```
+if1=rankNet(merged_cellchat, comparison=c(1,3),stacked = T, do.stat = TRUE)
+if2=rankNet(merged_cellchat, comparison=c(1,3),stacked = T, do.stat = TRUE)
+if3=rankNet(merged_cellchat, comparison=c(1,2,3),stacked = T, do.stat = TRUE)
+#if1+if2
+if3
+```
+### Compare_interactions
+##### heatmap (non-published material)
+```
+netVisual_heatmap(merged_cellchat,comparison=c(1,3))
+netVisual_heatmap(merged_cellchat,comparison=c(2,3))
+netVisual_heatmap(merged_cellchat,comparison=c(1,3),measure = "weight")
+netVisual_heatmap(merged_cellchat,comparison=c(2,3),measure = "weight")
+```
 ###### Fig. S2C
+```
+library(ComplexHeatmap)
+object.list=c(FS_cell_chat,HGG_cell_chat,MS_cell_chat)
+i = 1
+# combining all the identified signaling pathways from different datasets 
+pathway.union <- union(object.list[[i]]@netP$pathways, object.list[[i+1]]@netP$pathways)
+ht1 = netAnalysis_signalingRole_heatmap(object.list[[i]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i], width = 5, height = 16)
+ht2 = netAnalysis_signalingRole_heatmap(object.list[[i+1]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i+1], width = 5, height = 16)
+ht3 = netAnalysis_signalingRole_heatmap(object.list[[i+2]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i+2], width = 5, height = 16)
+draw(ht1 + ht2 + ht3, ht_gap = unit(0.5, "cm"))
+```
+##### Fig. S2D
+```
+netVisual_diffInteraction(merged_cellchat, weight.scale = T,comparison = c(1,3))
+netVisual_diffInteraction(merged_cellchat, weight.scale = T,comparison = c(2,3))
+```
+###### Fig. S2E
 ```
 object.list=c(FS_cell_chat,MS_cell_chat)
 group.cellType <- c(rep("0", 4), rep("5", 4))
@@ -420,66 +456,9 @@ object.list <- lapply(object.list, function(x) {mergeInteractions(x, group.cellT
 cellchat <- mergeCellChat(object.list, add.names = names(object.list))
 netVisual_diffInteraction(cellchat, weight.scale = T, measure = "count.merged", label.edge = T)
 ```
-##### Fig. S2D - Information_flow
-```
-if1=rankNet(merged_cellchat, comparison=c(1,3),stacked = T, do.stat = TRUE)
-if2=rankNet(merged_cellchat, comparison=c(1,3),stacked = T, do.stat = TRUE)
-if3=rankNet(merged_cellchat, comparison=c(1,2,3),stacked = T, do.stat = TRUE)
-#if1+if2
-if3
-```
-### Compare_interactions
-##### heatmap
-```
-netVisual_heatmap(merged_cellchat,comparison=c(1,3))
-netVisual_heatmap(merged_cellchat,comparison=c(2,3))
-netVisual_heatmap(merged_cellchat,comparison=c(1,3),measure = "weight")
-netVisual_heatmap(merged_cellchat,comparison=c(2,3),measure = "weight")
-```
-##### network
-```
-netVisual_diffInteraction(merged_cellchat, weight.scale = T,comparison = c(1,3))
-netVisual_diffInteraction(merged_cellchat, weight.scale = T,comparison = c(2,3))
-```
-###### Fig. S2E-F
-```
-library(ComplexHeatmap)
-object.list=c(FS_cell_chat,HGG_cell_chat,MS_cell_chat)
-i = 1
-# combining all the identified signaling pathways from different datasets 
-pathway.union <- union(object.list[[i]]@netP$pathways, object.list[[i+1]]@netP$pathways)
-ht1 = netAnalysis_signalingRole_heatmap(object.list[[i]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i], width = 5, height = 16)
-ht2 = netAnalysis_signalingRole_heatmap(object.list[[i+1]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i+1], width = 5, height = 16)
-ht3 = netAnalysis_signalingRole_heatmap(object.list[[i+2]], pattern = "outgoing", signaling = pathway.union, title = names(object.list)[i+2], width = 5, height = 16)
-draw(ht1 + ht2 + ht3, ht_gap = unit(0.5, "cm"))
-```
-###### Fig. SX
-```
-FSMS.chat.list=c(FS_cell_chat,MS_cell_chat)
-chat.names=list("FS","MS")
-FSvsMSchat <- mergeCellChat(FSMS.chat.list, add.names = names(chat.names))
-#par(mfrow = c(1,2), xpd=TRUE)
-netVisual_diffInteraction(FSvsMSchat, weight.scale = T)
-netVisual_diffInteraction(FSvsMSchat, weight.scale = T, measure = "weight")
-
-HGGMS.chat.list=c(HGG_cell_chat,MS_cell_chat)
-chat2.names=list("HGG","MS")
-HGGvsMSchat <- mergeCellChat(HGGMS.chat.list, add.names = names(chat2.names))
-#par(mfrow = c(1,2), xpd=TRUE)
-netVisual_diffInteraction(HGGvsMSchat, weight.scale = T)
-netVisual_diffInteraction(HGGvsMSchat, weight.scale = T, measure = "weight")
-```
-##### Cluster specific visualization
-```
-mat <- FS_cell_chat@net$weight
-par(mfrow = c(3,4), xpd=TRUE)
-for (i in 1:nrow(mat)) {
-  mat2 <- matrix(0, nrow = nrow(mat), ncol = ncol(mat), dimnames = dimnames(mat))
-  mat2[i, ] <- mat[i, ]
-  netVisual_circle(mat2, vertex.weight = groupSize, weight.scale = T, edge.weight.max = max(mat), title.name = rownames(mat)[i])
-}
-```
 ##### Pathway specific visualization
+
+###### (non-published material)
 ```
 pathways.show <- c("ANNEXIN") 
 weight.max <- getMaxWeight(merged_cellchat, slot.name = c("netP"), attribute = pathways.show) # control the edge weights across different datasets
@@ -494,6 +473,10 @@ for (i in 1:length(object.list)) {
 
 netVisual_aggregate(FS_cell_chat, signaling = "ANNEXIN",layout="circle")
 netVisual_aggregate(HGG_cell_chat, signaling = "ANNEXIN",layout="circle")
+```
+###### Figure 3B
+```
+plotGeneExpression(merged_cellchat, signaling = "ANNEXIN", split.by = "Type", colors.ggplot = T)
 ```
 
 # Cell type specific Differential Expression Analysis
@@ -510,7 +493,7 @@ Idents(MYE)="Type"
 DefaultAssay(MYE)="SCT"
 MYE_FSvsMS <- FindMarkers(MYE, ident.1 = "FS", ident.2 = "MS",logfc.threshold = 0.6, min.pct=0.30)
 ```
-### Intersection of DEGs across cell types (refer to Fig. 4)
+### Intersection of DEGs across cell types (refer to Fig. 4D)
 ```
 FB_MYE=subset(sample25,subset=seurat_clusters=="0"|seurat_clusters=="5")
 
@@ -523,9 +506,13 @@ VlnPlot(FB_MYE,features=g31,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00
 VlnPlot(FB_MYE,features=g35,split.by="Type",stack=T,flip=T,cols=c("#F8766D","#00BA38","#619CFF"))
 ```
 ### FB_MYE clusters
-##### tweak-in for assigning the celltype
+##### tweak-in for assigning the celltypes
 ```
-meta=read.table("metadata.txt",sep="\t", header=T)
+meta=read.table("metadata2.txt",sep="\t", header=T)
+head(meta)
+        cluster      Code
+1	   0	    fibroblast
+2          5	    myeloid
 
 GSM=FB_MYE@meta.data
 GSM$celltype=1
@@ -540,7 +527,7 @@ for(i in 1:nrow(GSM)){
 
 FB_MYE@meta.data=GSM
 ```
-### ReCluster Analysis
+### Re-cluster Analysis
 ```
 #FB_MYE=readRDS(file="FB_MYE.rds")
 DefaultAssay(FB_MYE)="integrated"
@@ -559,7 +546,7 @@ DefaultAssay(FB_MYE_re25)="SCT"
 DimPlot(FB_MYE_re25,reduction = "tsne")
 DimPlot(FB_MYE_re25,split.by = "Type",reduction = "tsne")
 ```
-#### Get top 10 Markers
+#### Get top 10 Markers (non-published material)
 ```
 DefaultAssay(FB_MYE_re25)="SCT"
 FB_MYE_re25_markers=FindAllMarkers(FB_MYE_re25,only.pos = T,logfc.threshold = 0.3, min.pct = 0.10)
@@ -588,7 +575,7 @@ plan("multiprocess", workers = 4)
 options(future.globals.maxSize = 15000 * 1024^2)
 future::plan("multiprocess", workers = 4)
 ```
-### Open seurat object as a variable as monocle_object
+### Open seurat object as a variable, monocle_object
 ```
 #setwd("/path/pseudotime-analysis/")
 FB_MYE_re25=readRDS(file="/path/FB_MYE_re25.rds")
@@ -661,9 +648,9 @@ plot_cells(cds0.7, color_cells_by = "Type",graph_label_size=0.5)
 plot_cells(cds0.7, color_cells_by = "celltype",graph_label_size=0.5)
 plot_cells(cds0.7, color_cells_by = "pseudotime",graph_label_size=0.5)
 ```
-### Plot genes (to check the status of identified signaling molecules from Fig. 3) along the pseudotime
+### Plot genes (to check the status of selected genes along the pseudotime
 ```
-geneset=c("ANXA1","FPR1")
+geneset=c("ANXA1","FPR1","SPP1")
 plot_cells(cds0.7, genes=geneset, label_cell_groups = F,label_groups_by_cluster = F,labels_per_group = F,label_branch_points = F,label_roots = F,label_leaves = F)
 #+facet_wrap(~celltype, nrow = 5) ##In case we go with one gene at a time
 ```
