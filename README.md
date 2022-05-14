@@ -3,3 +3,5 @@ This page includes the publicly available dataset (GSE IDs), scRNA data analysis
 Please visit the below link for source code:
 
 https://github.com/RajneeshSrivastava/scRNA-skin-tissue-repair/blob/main/scRNA-seq_transcriptomics.md
+
+![](./Datamining.jpg)
