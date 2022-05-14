@@ -1,4 +1,4 @@
-This page includes the dataset, codes and other analytics included in the manuscript entitled **Human Fetal Dermal Fibroblast Diversity is Characterized by Dominance of Annexin1-FPR1 Signaling**
+This page includes the publicly available dataset (GSE IDs), scRNA data analysis codes utilized for the manuscript entitled **Human Fetal Dermal Fibroblast Diversity is Characterized by Dominance of Annexin1-FPR1 Signaling**
 
 Please visit the below link for source code:
 
