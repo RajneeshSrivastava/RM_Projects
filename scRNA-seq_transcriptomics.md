@@ -310,7 +310,7 @@ mye=c("LYZ","CXCL8","HLA-DQB1","IL1B")
 FeaturePlot(sample25, reduction="tsne", features=mye, cols=c("grey","red","black"))
 ```
 
-# Cell-Chat-Analysis
+# CellChat-Analysis
 ### Load libraries
 ```
 library(CellChat)
