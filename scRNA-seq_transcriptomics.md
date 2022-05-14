@@ -1,7 +1,7 @@
-## Project: Comparative transcriptomics profile of FS HGG and MS
-#### Running title: "Single cell RNA study identifies an analogous genetic profile of fetal skin and gingiva fibroblast involved in tissue regeneration"
+## Project: Comparative transcriptomic analysis of FS HGG and MS tissues at single-cell resolution
+#### Running title: "Human Fetal Dermal Fibroblast Diversity is Characterized by Dominance of Annexin1-FPR1 Signaling"
 #### Author: "Rajneesh Srivastava"
-#### Date: "23/01/2022"
+#### Date: "05/13/2022"
 
 ### Setup the directory for data analysis in R (version 4.0.4)
 ```setwd ("/path/public_dataset/Result/")```
