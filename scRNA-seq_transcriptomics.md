@@ -705,7 +705,7 @@ plot_genes_in_pseudotime(cds_subgenes,
                          min_expr=0.05,ncol = 4)
 ```
 
-# Coexxpression Network Analysis
+# Co-expression Network Analysis
 
 ##### Load libraries
 ```
@@ -744,8 +744,7 @@ seurat_obj <- SetupForWGCNA (
                         seurat_obj,
                         gene_select = "fraction", 
                         fraction = 0.01,
-                        features = rownames(seurat_obj), #in case want all SCT genes to be tested
-                        #features = VariableFeatures(seurat_obj, assay="integrated"),
+                        features = rownames(seurat_obj),
                         wgcna_name = "SCT"
                              )
                           )
@@ -759,8 +758,8 @@ seurat_obj <- MetacellsByGroups(
                         max_shared=10,
                         min_cells = 50,
                         reduction = 'tsne',
-                        ident.group = 'Type',   #In case choosing option 2, replace with counts and RNA
-                        slot = 'data',          #slot = 'counts' while checking for all SCT genes else 'scale.data'
+                        ident.group = 'Type',
+                        slot = 'data',
                         assay = 'SCT',
                         #assay = 'RNA'
                                   )
@@ -776,9 +775,8 @@ seurat_obj <- SetDatExpr(seurat_obj,
                          )
 ```
 ##### test different soft power thresholds
-
 ```
-seurat_obj <- TestSoftPowers(seurat_obj) #If set for all features (not HighlyVariable), thsi stec will take ~2-4 hr
+seurat_obj <- TestSoftPowers(seurat_obj)
 plot_list <- PlotSoftPowers(seurat_obj)
 
 print(wrap_plots(plot_list, ncol=2))
@@ -789,7 +787,7 @@ head(power_table)
 ##### Construct network
 ```
 seurat_obj <- ConstructNetwork(seurat_obj,
-                               soft_power = 6, #if commented will be set to default
+                               soft_power = 6,
                                tom_name = "SCT_tom",
                                overwrite_tom = TRUE
                                )
@@ -813,7 +811,7 @@ MEs <- GetMEs(seurat_obj, harmonized=FALSE)
 ```
 ##### compute eigengene-based connectivity (kME):
 ```
-seurat_obj <- ModuleConnectivity(seurat_obj)  #takes 4-6 hr while using SCT all genes model
+seurat_obj <- ModuleConnectivity(seurat_obj)
 ```
 ##### rename the modules
 ```
