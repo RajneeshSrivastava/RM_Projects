@@ -705,4 +705,159 @@ plot_genes_in_pseudotime(cds_subgenes,
                          min_expr=0.05,ncol = 4)
 ```
 
+# Coexxpression Network Analysis
+
+##### Load libraries
+```
+#single-cell analysis package
+library(Seurat)
+library(future)
+
+#plotting and data science packages
+library(tidyverse)
+library(cowplot)
+library(patchwork)
+
+#co-expression network analysis packages:
+library(WGCNA)
+library(hdWGCNA)
+library(harmony)
+
+#using the cowplot theme for ggplot
+theme_set(theme_cowplot())
+
+plan("multiprocess", workers = 4)
+options(future.globals.maxSize = 15000 * 1024^2)
+future::plan("multiprocess", workers = 4)
+
+# set random seed for reproducibility
+set.seed(12345)
+```
+##### load seurat_object
+```
+seurat_obj <- readRDS(file="path/FB_MYE_re25.rds")
+```
+##### Set op seurat object
+
+```
+seurat_obj <- SetupForWGCNA (
+                        seurat_obj,
+                        gene_select = "fraction", 
+                        fraction = 0.01,
+                        features = rownames(seurat_obj), #in case want all SCT genes to be tested
+                        #features = VariableFeatures(seurat_obj, assay="integrated"),
+                        wgcna_name = "SCT"
+                             )
+                          )
+```
+##### Creating metacell
+```
+seurat_obj <- MetacellsByGroups(
+                        seurat_obj = seurat_obj,
+                        group.by = c("Type", "celltype"),
+                        k = 25,
+                        max_shared=10,
+                        min_cells = 50,
+                        reduction = 'tsne',
+                        ident.group = 'Type',   #In case choosing option 2, replace with counts and RNA
+                        slot = 'data',          #slot = 'counts' while checking for all SCT genes else 'scale.data'
+                        assay = 'SCT',
+                        #assay = 'RNA'
+                                  )
+```
+##### set expression matrix for hdWGCNA
+```
+seurat_obj <- SetDatExpr(seurat_obj, 
+                         assay="SCT",
+                         group_name = c("FS#Fibroblast","FS#Myeloid","HGG#Fibroblast","HGG#Myeloid","MS#Fibroblast","MS#Myeloid"),
+                         group.by="orig.ident",
+                         use_metacells = T,
+                         slot='data'
+                         )
+```
+##### test different soft power thresholds
+
+```
+seurat_obj <- TestSoftPowers(seurat_obj) #If set for all features (not HighlyVariable), thsi stec will take ~2-4 hr
+plot_list <- PlotSoftPowers(seurat_obj)
+
+print(wrap_plots(plot_list, ncol=2))
+
+power_table <- GetPowerTable(seurat_obj)
+head(power_table)
+```
+##### Construct network
+```
+seurat_obj <- ConstructNetwork(seurat_obj,
+                               soft_power = 6, #if commented will be set to default
+                               tom_name = "SCT_tom",
+                               overwrite_tom = TRUE
+                               )
+```
+##### plot the dendrogram
+```
+PlotDendrogram(seurat_obj, main='hdWGCNA SCT Dendrogram')
+```
+##### compute module eigengenes and connectivity
+```
+seurat_obj <- ModuleEigengenes(seurat_obj)
+```
+##### Get modules
+###### harmonized module eigengenes: (optional)
+```
+hMEs <- GetMEs(seurat_obj)
+```    
+###### module eigengenes:
+```
+MEs <- GetMEs(seurat_obj, harmonized=FALSE)
+```
+##### compute eigengene-based connectivity (kME):
+```
+seurat_obj <- ModuleConnectivity(seurat_obj)  #takes 4-6 hr while using SCT all genes model
+```
+##### rename the modules
+```
+seurat_obj <- ResetModuleNames(seurat_obj,
+                               new_name = "Types-M")
+```
+
+##### plot genes ranked by kME for each module
+```
+p <- PlotKMEs(seurat_obj, ncol=5)
+p
+```
+##### Getting the module assignment table
+##### get the module assignment table:
+```
+modules <- GetModules(seurat_obj)
+#head(modules[,1:6])
+```
+##### get hub genes
+```
+hub_df <- GetHubGenes(seurat_obj, n_hubs = 10)
+#head(hub_df)
+```
+##### Compute hub gene signature scores
+###### compute gene scoring for the top 25 hub genes by kME for each module
+###### with Seurat method
+```
+seurat_obj <- ModuleExprScore(seurat_obj,
+                                n_genes = 25,
+                                method='Seurat'
+                             )
+```
+##### Module Feature Plots
+```
+plot_list <- ModuleFeaturePlot(seurat_obj, reduction="tsne",
+                               features='hMEs', # plot the hMEs
+                               #features='scores', # plot the hub gene scores calculated as above
+                               order=TRUE # order so the points with highest hMEs are on top
+                               )
+
+wrap_plots(plot_list, ncol=3)
+```
+##### Save Files
+```
+saveRDS(seurat_obj, file='hdWGCNA_SCT_all_object.rds')
+```
 # Thank you
