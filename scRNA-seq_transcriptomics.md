@@ -1,18 +1,14 @@
 ## Project: Comparative transcriptomic analysis of FS HGG and MS tissues at single-cell resolution
-## Running title: "Human Fetal Dermal Fibroblast Diversity is Characterized by Dominance of Annexin1-FPR1 Signaling"
-### Author: "Rajneesh Srivastava"
-#### Date: "05/14/2022"
+## Running title: "Human Fetal Dermal Fibroblast Diversity is Characterized by Dominance of Pro-Healing Annexin1-FPR1 Signaling"
+### Authors: Rajneesh Srivastava, Kanhaiya Singh*, Ahmed S Abouhashem, Manishekhar Kumar, Sedat Kacar, Sumit S Verma, Sujit K Mohanty, Mithun Sinha, Subhadip Ghatak, Yi Xuan, and Chandan K. Sen*
+#### * Corresponding authors
+
+#### Created 07/21/2022"
+#### Updated on 03/20/2023"
 
 ### Setup the directory for data analysis in R (version 4.0.4)
 ```setwd ("/path/public_dataset/Result/")```
 
-### Software installation
-```
-install.packages("Seurat")   # version 4.0.2
-install.packages("hdf5r")
-install.packages("ggplot2")  # version 3.3.4
-install.packages("future")
-```
 ### Load libraries in R
 ```
 library(Seurat)
