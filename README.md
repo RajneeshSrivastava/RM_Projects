@@ -1,7 +1,7 @@
 This page includes the information related to publicly available dataset (collected from GEO database) and scRNA data analysis codes utilized for the manuscript entitled **"Human Fetal Dermal Fibroblast-Myeloid Cell Diversity is Characterized by Dominance of Pro-Healing Annexin1-FPR1 Signaling"**
 
 <p align="center"> 
-<img src="./scRNA_collection.jpg">
+<img src="./Graphical_abstract.png">
 </p>
 
 
